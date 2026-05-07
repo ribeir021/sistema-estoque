@@ -1,4 +1,5 @@
 import tkinter as tk
+from tkinter import ttk
 import sqlite3
 
 def inicializar_banco():
@@ -113,9 +114,36 @@ def tela_estoque(janela, nome_loja):
         widget.destroy()
     label_estoque = tk.Label(janela, text=f"Estoque Atual - {nome_loja}")
     label_estoque.grid(row=0, column=0, columnspan=2, pady=20, padx=20)
-
+            
+    conexao = sqlite3.connect("loja.db")
+    cursor = conexao.cursor()
+    # busca o produto
+    cursor.execute("SELECT p.nome_produto, p.preco_produto, e.qtd_atual FROM produtos p JOIN estoque e ON p.id_produto = e.id_produto;")
+    # variável recebe a busca
+    dados = cursor.fetchall()
+    # imprime a busca
+    print(dados)
+    # fecha o banco
+    conexao.close()
+    # define os nomes das colunas usadas nas tabelas
+    colunas = ("produto", "preco", "quantidade")
+    # cria a tabela na janela, 
+    # show="headings" esconde uma coluna inicial vazia
+    tabela = ttk.Treeview(janela, columns=colunas, show="headings")
+    # posição da tabela
+    tabela.grid(row=1, column=0, columnspan=2, pady=10)
+    # define os textos que vão aparecer 
+    # no topo de cada coluna e deixa eles mais bonitos
+    tabela.heading("produto", text="Produto")
+    tabela.heading("preco", text="Preço (R$)")
+    tabela.heading("quantidade", text="Qtd")
+    # percorre toda a busca recebida
+    for item in dados:
+        # insere os produtos na tabela com seus valores, colocando no final
+        tabela.insert("", tk.END, values=(item[0], item[1], item[2]))
+    # crio e coloco esse botão mais pra baixo
     botao_voltar = tk.Button(janela, text="Voltar ao Menu", command=lambda: tela_menu_principal(janela, nome_loja))
-    botao_voltar.grid(row=1, column=0, columnspan=2, pady=20)
+    botao_voltar.grid(row=100, column=0, columnspan=2, pady=40)
 
     
     

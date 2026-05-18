@@ -1,14 +1,11 @@
 import tkinter as tk
 from tkinter import ttk
 import sqlite3
-import datetime  # eu garanto a importação para registrar o horário das vendas
+import datetime
 
 def inicializar_banco():
-    # eu conecto ou crio o arquivo do banco de dados
     conexao = sqlite3.connect("loja.db")
     cursor = conexao.cursor()
-
-    # eu executo os scripts de criação das tabelas estruturadas
     cursor.executescript("""
            CREATE TABLE IF NOT EXISTS loja (
                 id_loja INTEGER PRIMARY KEY,
@@ -128,6 +125,21 @@ def vender_produto(id_loja, id_produto, qtd_a_vender):
         print("Erro: Por favor, insira um número inteiro válido para a quantidade!")
         return False
 
+def limpar_estoque(janela, nome_loja):
+    
+    id_loja_atual = int(nome_loja.split()[1])
+
+    conexao = sqlite3.connect("loja.db")
+    cursor = conexao.cursor()
+
+    cursor.execute("UPDATE estoque SET qtd_atual = 0 WHERE id_loja = ?", (id_loja_atual,))
+    
+    conexao.commit()
+    conexao.close()
+    
+    print(f"O estoque da {nome_loja} foi completamente zerado!")
+    tela_estoque(janela, nome_loja)
+
 def tela_cadastro(janela, nome_loja):
     for widget in janela.winfo_children():
         widget.destroy()
@@ -154,20 +166,16 @@ def tela_cadastro(janela, nome_loja):
     botao_voltar.grid(row=5, column=0, columnspan=2, pady=20)
 
 def tela_venda(janela, nome_loja):
-    # eu limpo a tela para desenhar o painel de saídas
     for widget in janela.winfo_children():
         widget.destroy()
         
     id_loja_atual = int(nome_loja.split()[1])
     
     tk.Label(janela, text=f"Registrar Venda - {nome_loja}", font=("Arial", 14, "bold")).grid(row=0, column=0, columnspan=2, pady=20)
-    
-    # eu monto o campo do ID do item
     tk.Label(janela, text="ID do Produto:").grid(row=1, column=0, padx=10, sticky="e")
     entry_id = tk.Entry(janela, width=30)
     entry_id.grid(row=1, column=1, padx=10, pady=5)
     
-    # eu monto o campo da quantidade vendida
     tk.Label(janela, text="Quantidade a Vender:").grid(row=2, column=0, padx=10, sticky="e")
     entry_qtd = tk.Entry(janela, width=30)
     entry_qtd.grid(row=2, column=1, padx=10, pady=5)
@@ -177,11 +185,16 @@ def tela_venda(janela, nome_loja):
         qtd = entry_qtd.get()
         
         if id_prod and qtd:
-            # eu envio as variáveis para a função de validação e banco de dados
-            sucesso = vender_produto(id_loja_atual, int(id_prod), int(qtd))
-            if sucesso:
-                entry_id.delete(0, tk.END)
-                entry_qtd.delete(0, tk.END)
+            try:
+                id_prod_int = int(id_prod)
+                qtd_int = int(qtd)
+                
+                sucesso = vender_produto(id_loja_atual, id_prod_int, qtd_int)
+                if sucesso:
+                    entry_id.delete(0, tk.END)
+                    entry_qtd.delete(0, tk.END)
+            except ValueError:
+                print("Erro: ID do produto e Quantidade precisam ser números inteiros válidos!")
         else:
             print("Preencha todos os campos!")
 
@@ -233,6 +246,9 @@ def tela_estoque(janela, nome_loja):
     except FileNotFoundError:
         print("Aviso: Arquivo não encontrado.")
         
+    # eu coloco o botão de limpar o estoque logo abaixo do painel de promoções
+    botao_limpar = tk.Button(janela, text="Limpar Estoque da Loja", bg="orange", fg="black", font=("Arial", 10, "bold"), command=lambda: limpar_estoque(janela, nome_loja))
+    botao_limpar.grid(row=4, column=0, columnspan=2, pady=10)
 
     botao_voltar = tk.Button(janela, text="Voltar ao Menu", command=lambda: tela_menu_principal(janela, nome_loja))
     botao_voltar.grid(row=200, column=0, columnspan=2, pady=40)
@@ -247,7 +263,6 @@ def tela_menu_principal(janela, nome_loja):
     botao_cadastrar_produto = tk.Button(janela, text="Cadastrar Novo Produto", command=lambda: tela_cadastro(janela, nome_loja))
     botao_cadastrar_produto.grid(row=1, column=0, columnspan=2, pady=15)
 
-    # eu incluo o botão de vendas no menu principal mapeando para a nova tela gráfica
     botao_registrar_venda = tk.Button(janela, text="Registrar Venda", command=lambda: tela_venda(janela, nome_loja))
     botao_registrar_venda.grid(row=2, column=0, columnspan=2, pady=15)
 
@@ -281,6 +296,9 @@ def tela_inicial(janela):
 
     botao_confirmar = tk.Button(janela, text="Entrar na Loja", command=confirmar_loja)
     botao_confirmar.grid(row=2, column=0, columnspan=2, pady=20)
+
+    botao_sair_programa = tk.Button(janela, text="Sair do Programa", command=janela.destroy)
+    botao_sair_programa.grid(row=3, column=0, columnspan=2, pady=20)
 
 def iniciar_interface():
     janela = tk.Tk()

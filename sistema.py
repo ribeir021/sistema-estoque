@@ -282,6 +282,9 @@ def tela_inicial(janela):
     botao_confirmar = tk.Button(janela, text="Entrar na Loja", command=confirmar_loja)
     botao_confirmar.grid(row=2, column=0, columnspan=2, pady=20)
 
+    botao_sair_programa = tk.Button(janela, text="Sair do Programa", command=janela.destroy)
+    botao_sair_programa.grid(row=3, column=0, columnspan=2, pady=20)
+    
 def iniciar_interface():
     janela = tk.Tk()
     janela.title("Sistema de Gerenciamento de Estoque")

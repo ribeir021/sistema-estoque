@@ -3,3 +3,4 @@ Devs:
     Diogo Ribeiro
     Ricardo Darland
     Rafael Schiavini
+Temos diversas funções nesse nosso sistema.
